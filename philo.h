@@ -24,7 +24,7 @@
 
 typedef struct t_philo
 {
-	pthread_t fork;
+	pthread_t id_phil;
 	int	is_eating;
 	int	is_dead;
 	int	is_sleeping;

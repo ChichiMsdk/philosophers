@@ -25,12 +25,17 @@ t_philo	**init_philo(t_rules *rules, t_philo **philo)
 	int	i;
 
 	i = 0;
-	philo = malloc(sizeof(t_philo*));
-	*philo = malloc(sizeof(t_philo) * rules->number_of_phil);
+	philo = malloc(sizeof(t_philo*) * rules->number_of_phil);
 	if (!philo)
 		return (NULL);
-	while (i < rules->number_of_phil)
+	while ( i < rules->number_of_phil)
 	{
+		philo[i] = malloc(sizeof(t_philo));
+		if (!philo[i])
+		{
+			free(philo);
+			return NULL;
+		}
 		philo[i]->is_dead = 0;
 		philo[i]->is_eating = 0;
 		philo[i]->is_sleeping = 0;
