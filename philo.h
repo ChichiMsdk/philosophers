@@ -22,12 +22,20 @@
 # include <stdio.h>
 # include <semaphore.h>
 
+typedef struct timeval	t_timeval;
+
 typedef struct t_philo
 {
-	pthread_t id_phil;
-	int	is_eating;
-	int	is_dead;
-	int	is_sleeping;
+	pthread_t		th;
+	pthread_mutex_t mutex;
+	int				is_eating;
+	int				is_dead;
+	int				is_sleeping;
+	int				id;
+	long			start_time;
+	long			current_time;
+	long			delta_time;
+	struct timeval	*timeval;
 }t_philo;
 
 typedef struct t_rules
@@ -38,8 +46,16 @@ typedef struct t_rules
 	int	time_to_sleep;
 }t_rules;
 
-void		printing_all(t_rules *rules, t_philo *philo);
-t_philo		**init_philo(t_rules *rules, t_philo **philo);
+t_philo		**init_philo(t_rules *rules, t_philo **philo, t_timeval *timeval);
+t_rules		*init_rules(t_rules *rules, char **argv);
+void		free_all(t_rules *rules, t_philo **philo);
+
 int			convert_time(char *argv);
+int			*convert_all(char **argv, int *converted);
+int			is_time_out(t_philo *philo, int limit_time);
+int			convert_time(char *argv);
+void		*set_time(t_philo *philo, long time);
+
 int			ft_atoi(const char *str);
 #endif
+t_philo	*init_mutex_thread(t_philo *philo);
