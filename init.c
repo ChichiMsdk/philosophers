@@ -16,6 +16,7 @@
 t_philo	**init_philo(t_rules *rules, t_philo **philo, t_timeval *timeval)
 {
 	int	i;
+	pthread_t thread;
 
 	i = 0;
 	philo = malloc(sizeof(t_philo *) * rules->number_of_phil);
@@ -36,9 +37,9 @@ t_philo	**init_philo(t_rules *rules, t_philo **philo, t_timeval *timeval)
 		philo[i]->is_eating = 0;
 		philo[i]->is_sleeping = 0;
 		philo[i]->id = i;
-		init_mutex_thread(philo[i]);
 		i++;
 	}
+	init_mutex_thread(philo, rules);
 	return (philo);
 }
 
@@ -83,12 +84,22 @@ void	*action_philo(void *arg)
 	printf("Im philo[%d] and locked it !\n", philo->id);
 	usleep(100);
 	pthread_mutex_unlock(&philo->mutex);
-	return NULL;
+	return (NULL);
 }
 
-t_philo	*init_mutex_thread(t_philo *philo)
+t_philo	*init_mutex_thread(t_philo **philo, t_rules *rules)
 {
-	pthread_mutex_init(&philo->mutex, NULL);
-	pthread_create(&philo->th, NULL, action_philo, philo);
-	return (philo);
+	int	i;
+
+	i = 0;
+	pthread_mutex_init(&philo[0]->mutex, NULL);
+	pthread_mutex_lock(&philo[0]->mutex);
+	while (i < rules->number_of_phil)
+	{
+		philo[i]->mutex = philo[0]->mutex;
+		pthread_create(&philo[i]->th, NULL, action_philo, philo);
+		i++;
+	}
+	pthread_mutex_unlock(&philo[0]->mutex);
+	return (*philo);
 }

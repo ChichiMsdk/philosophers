@@ -48,6 +48,7 @@ typedef struct t_rules
 
 t_philo		**init_philo(t_rules *rules, t_philo **philo, t_timeval *timeval);
 t_rules		*init_rules(t_rules *rules, char **argv);
+t_philo		*init_mutex_thread(t_philo **philo, t_rules *rules);
 void		free_all(t_rules *rules, t_philo **philo);
 
 int			convert_time(char *argv);
@@ -58,4 +59,3 @@ void		*set_time(t_philo *philo, long time);
 
 int			ft_atoi(const char *str);
 #endif
-t_philo	*init_mutex_thread(t_philo *philo);
