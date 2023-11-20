@@ -28,6 +28,9 @@ typedef struct t_philo
 {
 	pthread_t		th;
 	pthread_mutex_t mutex;
+	pthread_mutex_t left_mutex;
+	pthread_mutex_t right_mutex;
+	pthread_mutex_t test;
 	int				is_eating;
 	int				is_dead;
 	int				is_sleeping;

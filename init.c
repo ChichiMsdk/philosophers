@@ -13,6 +13,32 @@
 #include "philo.h"
 #include <pthread.h>
 
+t_philo **init_mutex(t_philo **philo, t_rules *rules)
+{
+	int	i;
+
+	i = 0;
+	while (i < rules->number_of_phil)
+	{
+		if (i+1 == rules->number_of_phil)
+		{
+			philo[i]->right_mutex = philo[0]->mutex;
+			philo[i]->left_mutex = philo[i-1]->mutex;
+		}
+		if (i-1 < 0)
+		{
+			philo[i]->right_mutex = philo[i+1]->mutex;
+			philo[i]->left_mutex = philo[rules->number_of_phil-1]->mutex;
+		}
+		else
+		{
+			philo[i]->right_mutex = philo[i+1]->mutex;
+			philo[i]->left_mutex = philo[i-1]->mutex;
+		}
+	}
+	return (philo);
+}
+
 t_philo	**init_philo(t_rules *rules, t_philo **philo, t_timeval *timeval)
 {
 	int	i;
@@ -30,6 +56,7 @@ t_philo	**init_philo(t_rules *rules, t_philo **philo, t_timeval *timeval)
 			free(philo);
 			return (NULL);
 		}
+		pthread_mutex_init(&philo[i]->mutex, NULL);
 		philo[i]->timeval = timeval;
 		philo[i]->current_time = 0;
 		philo[i]->start_time = 0;
@@ -39,6 +66,7 @@ t_philo	**init_philo(t_rules *rules, t_philo **philo, t_timeval *timeval)
 		philo[i]->id = i;
 		i++;
 	}
+	philo = init_mutex(philo, rules);
 	init_mutex_thread(philo, rules);
 	return (philo);
 }
@@ -77,12 +105,18 @@ void	free_all(t_rules *rules, t_philo **philo)
 
 void	*action_philo(void *arg)
 {
-	t_philo *philo;
+	t_philo	*philo;
+	t_philo	*tmp;
+	int	id;
 
-	pthread_mutex_lock(&philo->mutex);
+	id = philo->id;
 	philo = (t_philo *)arg;
-	printf("Im philo[%d] and locked it !\n", philo->id);
-	usleep(100);
+	if (id == 22)
+		pthread_mutex_lock(&philo->mutex);
+	if (id == 0)
+		pthread_mutex_lock(&philo->mutex);
+	pthread_mutex_lock(&philo->mutex);
+	printf("Im philo[%d] and locked it !\n", id);
 	pthread_mutex_unlock(&philo->mutex);
 	return (NULL);
 }
@@ -90,16 +124,18 @@ void	*action_philo(void *arg)
 t_philo	*init_mutex_thread(t_philo **philo, t_rules *rules)
 {
 	int	i;
+	pthread_mutex_t	mutex;
 
 	i = 0;
-	pthread_mutex_init(&philo[0]->mutex, NULL);
-	pthread_mutex_lock(&philo[0]->mutex);
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_lock(&mutex);
 	while (i < rules->number_of_phil)
 	{
-		philo[i]->mutex = philo[0]->mutex;
-		pthread_create(&philo[i]->th, NULL, action_philo, philo);
+		pthread_create(&philo[i]->th, NULL, action_philo, *philo);
 		i++;
 	}
-	pthread_mutex_unlock(&philo[0]->mutex);
+	pthread_mutex_unlock(&mutex);
+	pthread_mutex_destroy(&mutex);
+	i = 0;
 	return (*philo);
 }

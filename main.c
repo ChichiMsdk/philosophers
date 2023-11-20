@@ -37,25 +37,23 @@ void	*im_thread2(void *arg)
 	return NULL;
 }
 
-void	cleaner(t_philo *philo, t_rules *rules)
+void	cleaner(t_philo **philo, t_rules *rules)
 {
 	int	i;
 
+	i = 0;
 	while (i < rules->number_of_phil)
 	{
-		if (!philo[i].is_dead)
-			pthread_join(philo[i].th, NULL);
+		pthread_join(philo[i]->th, NULL);
 		i++;
 	}
 	i = 0;
 	while (i < rules->number_of_phil)
 	{
-		if (!philo[i].is_dead)
-			pthread_detach(philo[i].th);
+		pthread_mutex_destroy(&philo[i]->mutex);
 		i++;
 	}
-	pthread_mutex_destroy(&philo[i].mutex);
-	free_all(rules, &philo);
+	free_all(rules, philo);
 }
 
 int	main(int argc, char **argv)
@@ -83,13 +81,6 @@ int	main(int argc, char **argv)
 		return (-1);
 	printing_all(rules, *philo);
 	i = 0;
-	while (i < rules->number_of_phil)
-	{
-		gettimeofday(philo[i]->timeval, NULL);
-		printf("time: %ld.%dsec\n", philo[i]->timeval->tv_sec,
-			philo[i]->timeval->tv_usec);
-		i++;
-	}
-	cleaner(*philo, rules);
+	cleaner(philo, rules);
 	return (0);
 }
