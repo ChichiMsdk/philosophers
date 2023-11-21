@@ -12,6 +12,20 @@
 
 #include "philo.h"
 
+void	free_all(t_rules *rules, t_philo **philo)
+{
+	int	i;
+
+	i = 0;
+	while (i < rules->number_of_phil)
+	{
+		free(philo[i]);
+		i++;
+	}
+	free(rules);
+	free(philo);
+}
+
 static int	ft_isspace(char c)
 {
 	if (c == 32)

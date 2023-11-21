@@ -12,6 +12,14 @@
 
 #include "philo.h"
 
+int	convert_time(char *argv)
+{
+	int	time_converted;
+
+	time_converted = ft_atoi(argv); 
+	return (time_converted);
+}
+
 int	*convert_all(char **argv, int *converted)
 {
 	int	i;
@@ -32,13 +40,19 @@ int	*convert_all(char **argv, int *converted)
 	return (converted);
 }
 
-void	*set_time(t_philo *philo, long time)
+void	*set_time(t_philo *philo, long *time)
 {
 	if (!philo || !philo->timeval)
 		return (NULL);
 	gettimeofday(philo->timeval, NULL);
-	time = philo->timeval->tv_sec;
+	*time = (philo->timeval->tv_sec*1000) + (philo->timeval->tv_usec/1000);
 	return (philo);
+}
+
+long	get_time(t_philo *philo, long time)
+{
+	set_time(philo, &philo->current_time);
+	return ((philo->current_time-time));
 }
 
 int	is_time_out(t_philo *philo, int limit_time)
@@ -48,16 +62,12 @@ int	is_time_out(t_philo *philo, int limit_time)
 	if (!philo || !philo->timeval || !philo->current_time 
 		|| !philo->start_time)
 		return (-1);
-	delta_time = philo->current_time - philo->start_time;
-	if (delta_time > limit_time)
+	if (get_time(philo, philo->start_time) > limit_time)
+	{
+		printf("%ld %d died\n", get_time(philo, philo->start_time), philo->id);
+		pthread_mutex_unlock(philo->right_mutex);
+		pthread_mutex_unlock(&philo->mutex);
 		return (1);
+	}
 	return (0);
-}
-
-int	convert_time(char *argv)
-{
-	int	time_converted;
-
-	time_converted = ft_atoi(argv) * 1000; 
-	return (time_converted);
 }
