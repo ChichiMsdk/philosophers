@@ -51,6 +51,7 @@ typedef struct t_rules
 	pthread_mutex_t		write;
 	int					stop;
 	int					number_of_phil;
+	int					number_meals;
 	int					time_to_die;
 	int					time_to_eat;
 	int					time_to_sleep;

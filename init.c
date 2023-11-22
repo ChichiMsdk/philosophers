@@ -20,7 +20,6 @@ t_rules	*init_rules(t_rules *rules, char **argv)
 	if (!rules)
 		return (NULL);
 	convert_all(argv, converted);
-	pthread_mutex_init(&rules->write, NULL);
 	rules->number_of_phil = ft_atoi(argv[1]);
 	rules->time_to_die = converted[0];
 	rules->time_to_eat = converted[1];
@@ -93,7 +92,6 @@ t_philo	*init_mutex_thread(t_philo **philo, t_rules *rules)
 	flag = 0;
 	while (i < rules->number_of_phil)
 	{
-		philo[i]->write = &philo[0]->rules->write;
 		philo[i]->rules = rules;
 		philo[i]->flag = &flag;
 		pthread_create(&philo[i]->th, NULL, launch_th, philo[i]);
