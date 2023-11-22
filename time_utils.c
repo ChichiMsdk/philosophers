@@ -53,9 +53,6 @@ int	*convert_all(char **argv, int *converted)
 	int	i;
 
 	i = 0;
-	converted = malloc(sizeof(int) * 3);
-	if (!converted)
-		return (NULL);
 	converted[0] = convert_time(argv[2]);
 	converted[1] = convert_time(argv[3]);
 	converted[2] = convert_time(argv[4]);

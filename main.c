@@ -19,8 +19,9 @@ int	main(int argc, char **argv)
 	t_rules		*rules;
 	t_philo		**philo;
 	t_timeval	timeval;
-	int			i;
 
+	rules = NULL;
+	philo = NULL;
 	if (argc != 5 && argc != 6)
 	{
 		printf("Wrong number of args\n");

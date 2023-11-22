@@ -72,7 +72,6 @@ void	*action_philo(t_philo *philo)
 void	*launch_th(void *arg)
 {
 	t_philo	*philo;
-	int		id;
 
 	philo = (t_philo *)arg;
 	while (*philo->flag == 0)

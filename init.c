@@ -14,14 +14,12 @@
 
 t_rules	*init_rules(t_rules *rules, char **argv)
 {
-	int	*converted;
+	int	converted[3];
 
 	rules = malloc(sizeof(t_rules));
 	if (!rules)
 		return (NULL);
-	converted = convert_all(argv, converted);
-	if (!converted)
-		return (NULL);
+	convert_all(argv, converted);
 	pthread_mutex_init(&rules->write, NULL);
 	rules->number_of_phil = ft_atoi(argv[1]);
 	rules->time_to_die = converted[0];
@@ -29,7 +27,6 @@ t_rules	*init_rules(t_rules *rules, char **argv)
 	rules->time_to_sleep = converted[2];
 	rules->first_dead = 0;
 	rules->stop = 0;
-	free(converted);
 	if (rules->number_of_phil < 1 || rules->time_to_die < 1
 		|| rules->time_to_eat < 1 || rules->time_to_sleep < 1)
 	{
