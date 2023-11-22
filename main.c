@@ -14,39 +14,12 @@
 #include <pthread.h>
 #include <sys/time.h>
 
-void	printing_all(t_rules *rules, t_philo **philo)
-{
-	printf("number_of_phil: %d \n", rules->number_of_phil);
-	printf("time_to_die: %d\n", rules->time_to_die);
-	printf("time_to_eat: %d\n", rules->time_to_eat);
-	printf("time_to_sleep: %d\n", rules->time_to_sleep);
-	printf("is_dead ? %d\n", philo[0]->is_dead);
-	printf("is_eating ? %d\n", philo[0]->is_eating);
-	printf("is_sleeping ? %d\n", philo[0]->is_sleeping);
-}
-
-void	*im_thread(void *arg)
-{
-	printf("Im just a thread\n");
-	return (NULL);
-}
-
-void	*im_thread2(void *arg)
-{
-	printf("Im just a thread2\n");
-	return NULL;
-}
-
-
 int	main(int argc, char **argv)
 {
-	t_rules				*rules;
-	t_philo				**philo;
-	t_timeval			timeval;
-	int					i;
-	pthread_t			thread;
-	pthread_t			thread2;
-	pthread_mutex_t		mutex;
+	t_rules		*rules;
+	t_philo		**philo;
+	t_timeval	timeval;
+	int			i;
 
 	if (argc != 5 && argc != 6)
 	{
@@ -61,7 +34,6 @@ int	main(int argc, char **argv)
 		return (-1);
 	philo = init_mutex(philo, rules);
 	init_mutex_thread(philo, rules);
-//	printing_all(rules, philo);
 	cleaner(philo, rules);
 	return (0);
 }

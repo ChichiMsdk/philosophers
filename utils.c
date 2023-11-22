@@ -37,9 +37,9 @@ static int	ft_isspace(char c)
 
 int	ft_atoi(const char *str)
 {
-	int				sign;
-	long int		result;
-	long int		tmp;
+	int			sign;
+	long int	result;
+	long int	tmp;
 
 	sign = 1;
 	result = 0;

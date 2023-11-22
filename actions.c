@@ -12,46 +12,59 @@
 
 #include "philo.h"
 
-void	*action_philo_alone(void *arg)
+void	take_forks(t_philo *philo)
 {
-	t_philo	*philo;
-	int	id;
+	pthread_mutex_lock(&philo->left_mutex);
+	if (is_time_out(philo, philo->rules->time_to_die) == 1)
+		return ;
+	alert(philo, F);
+	pthread_mutex_lock(philo->right_mutex);
+	if (is_time_out(philo, philo->rules->time_to_die) == 1)
+		return ;
+	alert(philo, F);
+}
 
-	philo = (t_philo *)arg;
-	id = philo->id;
-	pthread_mutex_lock(&philo->mutex);
-	printf("Im philo[%d] and locked it !\n", id);
-	pthread_mutex_unlock(&philo->mutex);
-	return (NULL);
+void	drop_forks(t_philo *philo)
+{
+	pthread_mutex_unlock(&philo->left_mutex);
+	pthread_mutex_unlock(philo->right_mutex);
+	if (is_time_out(philo, philo->rules->time_to_die) == 1)
+		return ;
+	alert(philo, S);
+	usleep(philo->rules->time_to_sleep * 1000);
+}
+
+void	eating(t_philo *philo)
+{
+	alert(philo, E);
+	usleep(philo->rules->time_to_eat * 1000);
+	if (is_time_out(philo, philo->rules->time_to_die) == 1)
+		return ;
 }
 
 void	*action_philo(t_philo *philo)
 {
 	set_time(philo, &philo->begin_simu);
-	while(1)
+	set_time(philo, &philo->start_time);
+	while (!philo->rules->stop)
 	{
+		alert(philo, T);
+		take_forks(philo);
+		if (is_time_out(philo, philo->rules->time_to_die) == 1)
+		{
+			pthread_mutex_unlock(&philo->left_mutex);
+			pthread_mutex_unlock(philo->right_mutex);
+			break ;
+		}
 		set_time(philo, &philo->start_time);
+		eating(philo);
 		if (is_time_out(philo, philo->rules->time_to_die) == 1)
-			return (NULL);
-		pthread_mutex_lock(&philo->mutex);
-		printf("%ld %d has taken a fork\n", get_time(philo, philo->begin_simu),
-				philo->id);
-		pthread_mutex_lock(philo->right_mutex);
-		printf("%ld %d has taken a fork\n", get_time(philo, philo->begin_simu),
-				philo->id);
-		if (is_time_out(philo, philo->rules->time_to_die) == 1)
-			break;
-		printf("%ld %d is eating\n",get_time(philo, philo->begin_simu),
-				philo->id);
-		set_time(philo, &philo->start_time);
-		usleep(philo->rules->time_to_eat);
-		if (is_time_out(philo, philo->rules->time_to_die) == 1)
-			break;
-		pthread_mutex_unlock(philo->right_mutex);
-		pthread_mutex_unlock(&philo->mutex);
-		printf("%ld %d is sleeping\n",get_time(philo, philo->begin_simu),
-				philo->id);
-		usleep(philo->rules->time_to_sleep);
+		{
+			pthread_mutex_unlock(&philo->left_mutex);
+			pthread_mutex_unlock(philo->right_mutex);
+			break ;
+		}
+		drop_forks(philo);
 	}
 	return (NULL);
 }
@@ -59,9 +72,7 @@ void	*action_philo(t_philo *philo)
 void	*launch_th(void *arg)
 {
 	t_philo	*philo;
-	t_philo	*tmp;
-	int	id;
-	int	*flag;
+	int		id;
 
 	philo = (t_philo *)arg;
 	while (*philo->flag == 0)
@@ -69,23 +80,4 @@ void	*launch_th(void *arg)
 	}
 	action_philo(philo);
 	return (NULL);
-}
-
-void	cleaner(t_philo **philo, t_rules *rules)
-{
-	int	i;
-
-	i = 0;
-	while (i < rules->number_of_phil)
-	{
-		pthread_join(philo[i]->th, NULL);
-		i++;
-	}
-	i = 0;
-	while (i < rules->number_of_phil)
-	{
-		pthread_mutex_destroy(&philo[i]->mutex);
-		i++;
-	}
-	free_all(rules, philo);
 }
