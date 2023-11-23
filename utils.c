@@ -16,6 +16,7 @@ void	free_all(t_rules *rules, t_philo **philo)
 {
 	int	i;
 
+	free(rules->forks);
 	i = 0;
 	while (i < rules->number_of_phil)
 	{

@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "philo.h"
-#include <pthread.h>
 
 int	check_time(t_philo *philo, long time)
 {

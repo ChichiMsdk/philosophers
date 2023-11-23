@@ -11,7 +11,6 @@
 /* ************************************************************************** */
 
 #include "philo.h"
-#include <pthread.h>
 
 void	*set_time_current(t_philo *philo, long *time)
 {
