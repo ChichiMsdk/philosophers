@@ -18,7 +18,6 @@ int	main(int argc, char **argv)
 {
 	t_rules		*rules;
 	t_philo		**philo;
-	t_timeval	timeval;
 
 	rules = NULL;
 	philo = NULL;
@@ -30,7 +29,7 @@ int	main(int argc, char **argv)
 	rules = init_rules(rules, argv);
 	if (!rules)
 		return (-1);
-	philo = init_philo(rules, philo, &timeval);
+	philo = init_philo(rules, philo);
 	if (!philo)
 		return (-1);
 	philo = init_mutex(philo, rules);

@@ -11,44 +11,120 @@
 /* ************************************************************************** */
 
 #include "philo.h"
+#include <pthread.h>
 
-void	alert(t_philo *philo, char *alert)
+int	check_time(t_philo *philo, long time)
 {
-	if (philo->rules->stop != 0)
+	if (current_time(philo, 0) - time >= philo->rules->time_to_die)
 	{
-		if (alert[0] == 'd' || philo->rules->stop == 1)
-		{
-			printf("%ldms| %d %s\n", get_time(philo, philo->begin_simu),
-				philo->id, alert);
-			philo->rules->stop = 2;
-			pthread_mutex_unlock(&philo->left_mutex);
-			pthread_mutex_unlock(philo->right_mutex);
-		}
-		return ;
+		philo->is_dead = 1;
+		alert_ow(philo, "died");
+		return (1);
 	}
-	printf("%ldms| %d %s\n", get_time(philo, philo->begin_simu), philo->id,
+	return (0);
+}
+
+int	check_meals(t_philo *philo, int meals)
+{
+	if (meals != 0 && philo->meals_eaten == meals)
+	{
+		pthread_mutex_lock(&philo->rules->write);
+		philo->rules->stop = 1;
+		alert_ow(philo, "ate");
+		pthread_mutex_unlock(&philo->rules->write);
+		return (1);
+	}
+	return (0);
+}
+
+void	*overwatch_action(t_philo *philo)
+{
+	int meals;
+
+	while (1)
+	{
+//		usleep(1000);
+		pthread_mutex_lock(&philo->rules->write);
+		if (philo->start_time != 0)
+		{
+			pthread_mutex_unlock(&philo->rules->write);
+			break ;
+		}
+		pthread_mutex_unlock(&philo->rules->write);
+	}
+	meals = philo->rules->number_meals;
+	while (1)
+	{
+		pthread_mutex_lock(&philo->rules->eating);
+		if (check_meals(philo, meals))
+		{
+			pthread_mutex_unlock(&philo->rules->eating);
+			break ;
+		}
+		pthread_mutex_unlock(&philo->rules->eating);
+		pthread_mutex_lock(&philo->rules->write);
+		if (check_time(philo, philo->start_time))
+		{
+			pthread_mutex_unlock(&philo->rules->write);
+			break ;
+		}
+		pthread_mutex_unlock(&philo->rules->write);
+		usleep(10000);
+	}
+	return (NULL);
+}
+
+int	alert(t_philo *philo, char *alert)
+{
+	pthread_mutex_lock(&philo->rules->write);
+	if (philo->rules->stop == 1)
+	{
+		pthread_mutex_unlock(&philo->rules->write);
+		return (1);
+	}
+	if (philo->is_dead == 1)
+	{
+		if (ft_strcmp("died", alert) == 0 && philo->rules->stop == 0)
+			printf("%ldms| %d %s\n", get_time(philo, philo->rules->begin_simu),
+				philo->id, alert);
+		philo->rules->stop = 1;
+		pthread_mutex_unlock(&philo->rules->write);
+		return (1);
+	}
+	printf("%ldms| %d %s\n", get_time(philo, philo->rules->begin_simu), philo->id,
 		alert);
+	pthread_mutex_unlock(&philo->rules->write);
+	return (0);
+}
+
+void	alert_ow(t_philo *philo, char *alert)
+{
+	if (ft_strcmp("died", alert) == 0 && philo->rules->stop == 0)
+	{
+		printf("%ldms| %d %s\n", get_time(philo, philo->rules->begin_simu),
+			philo->id, alert);
+		philo->rules->stop = 1;
+	}
+	return ;
 }
 
 void	*overwatch(void *arg)
 {
-	t_philo	**philo;
-	int		i;
+	t_philo	*philo;
 
-	philo = (t_philo **)arg;
-	i = 0;
-	while (1)
+	philo = (t_philo *)arg;
+	while(1)
 	{
-		if (i >= philo[0]->rules->number_of_phil)
-			i = 0;
-		if (is_time_out(philo[i], philo[i]->rules->time_to_die) == 1)
+//		usleep(10000);
+		pthread_mutex_lock(&philo->rules->write);
+		if (*philo->flag == 1)
 		{
-			philo[i]->rules->stop = 1;
-			alert(philo[i], D);
+			pthread_mutex_unlock(&philo->rules->write);
 			break ;
 		}
-		i++;
+		pthread_mutex_unlock(&philo->rules->write);
 	}
+	overwatch_action(philo);
 	return (NULL);
 }
 
@@ -59,7 +135,7 @@ void	cleaner(t_philo **philo, t_rules *rules)
 	i = 0;
 	while (i < rules->number_of_phil)
 	{
-		pthread_mutex_destroy(&philo[i]->left_mutex);
+		pthread_mutex_destroy(philo[i]->left_mutex);
 		i++;
 	}
 	free_all(rules, philo);

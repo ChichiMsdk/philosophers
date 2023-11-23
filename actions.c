@@ -12,59 +12,92 @@
 
 #include "philo.h"
 
-void	take_forks(t_philo *philo)
+void	*lock_and_alert(t_philo *philo, pthread_mutex_t *fst,
+		pthread_mutex_t *scd, char *code)
 {
-	pthread_mutex_lock(&philo->left_mutex);
-	if (is_time_out(philo, philo->rules->time_to_die) == 1)
-		return ;
-	alert(philo, F);
-	pthread_mutex_lock(philo->right_mutex);
-	if (is_time_out(philo, philo->rules->time_to_die) == 1)
-		return ;
-	alert(philo, F);
+	pthread_mutex_lock(fst);
+	if (alert(philo, code) || fst == scd)
+	{
+		pthread_mutex_unlock(fst);
+		return (NULL);
+	}
+	pthread_mutex_lock(scd);
+	if (alert(philo, code))
+	{
+		pthread_mutex_unlock(fst);
+		pthread_mutex_unlock(scd);
+		return (NULL);
+	}
+	return (philo);
 }
 
-void	drop_forks(t_philo *philo)
+void	*take_forks(t_philo *philo)
 {
-	pthread_mutex_unlock(&philo->left_mutex);
+	if (philo->id % 2 == 0)
+	{
+		if (!lock_and_alert(philo, philo->right_mutex, philo->left_mutex, F))
+			return (NULL);
+	}
+	else
+	{
+		if (!lock_and_alert(philo, philo->left_mutex, philo->right_mutex, F))
+			return (NULL);
+	}
+	return (philo);
+}
+
+void	*drop_forks(t_philo *philo)
+{
 	pthread_mutex_unlock(philo->right_mutex);
-	if (is_time_out(philo, philo->rules->time_to_die) == 1)
-		return ;
-	alert(philo, S);
+	pthread_mutex_unlock(philo->left_mutex);
+	if (alert(philo, S))
+		return (NULL);
 	usleep(philo->rules->time_to_sleep * 1000);
+	return (philo);
 }
 
-void	eating(t_philo *philo)
+void	*eating(t_philo *philo)
 {
-	alert(philo, E);
+	pthread_mutex_lock(&philo->rules->eating);
+	if (alert(philo, E))
+	{
+		pthread_mutex_unlock(philo->right_mutex);
+		pthread_mutex_unlock(philo->left_mutex);
+		pthread_mutex_unlock(&philo->rules->eating);
+		return (NULL);
+	}
+	philo->meals_eaten++;
+	pthread_mutex_lock(&philo->rules->write);
+	set_time_current(philo, &philo->start_time);
+	pthread_mutex_unlock(&philo->rules->eating);
+	if (philo->rules->stop == 1)
+	{
+		pthread_mutex_unlock(philo->right_mutex);
+		pthread_mutex_unlock(philo->left_mutex);
+		pthread_mutex_unlock(&philo->rules->write);
+		return (NULL);
+	}
+	pthread_mutex_unlock(&philo->rules->write);
 	usleep(philo->rules->time_to_eat * 1000);
-	if (is_time_out(philo, philo->rules->time_to_die) == 1)
-		return ;
+	return (philo);
 }
 
 void	*action_philo(t_philo *philo)
 {
-	set_time(philo, &philo->begin_simu);
-	set_time(philo, &philo->start_time);
-	while (!philo->rules->stop)
+	pthread_mutex_lock(&philo->rules->write);
+	set_time_current(philo, &philo->start_time);
+	pthread_mutex_unlock(&philo->rules->write);
+	while (1)
 	{
-		alert(philo, T);
-		take_forks(philo);
-		if (is_time_out(philo, philo->rules->time_to_die) == 1)
-		{
-			pthread_mutex_unlock(&philo->left_mutex);
-			pthread_mutex_unlock(philo->right_mutex);
+		if (alert(philo, T))
 			break ;
-		}
-		set_time(philo, &philo->start_time);
-		eating(philo);
-		if (is_time_out(philo, philo->rules->time_to_die) == 1)
-		{
-			pthread_mutex_unlock(&philo->left_mutex);
-			pthread_mutex_unlock(philo->right_mutex);
+		if (!take_forks(philo))
 			break ;
-		}
-		drop_forks(philo);
+		if (!eating(philo))
+			break ;
+		if (!drop_forks(philo))
+			break ;
+		usleep(10000);
 	}
 	return (NULL);
 }
@@ -74,8 +107,17 @@ void	*launch_th(void *arg)
 	t_philo	*philo;
 
 	philo = (t_philo *)arg;
-	while (*philo->flag == 0)
+	pthread_create(&philo->ow_th, NULL, overwatch, philo);
+	while (1)
 	{
+		// usleep(10000);
+		pthread_mutex_lock(&philo->rules->write);
+		if (*philo->flag == 1)
+		{
+			pthread_mutex_unlock(&philo->rules->write);
+			break ;
+		}
+		pthread_mutex_unlock(&philo->rules->write);
 	}
 	action_philo(philo);
 	return (NULL);

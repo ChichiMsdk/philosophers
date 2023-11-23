@@ -63,3 +63,29 @@ int	ft_atoi(const char *str)
 	}
 	return ((int)result * sign);
 }
+
+int	ft_strcmp(const char *s1, const char *s2)
+{
+	int	i;
+
+	i = 0;
+	if (!s1 || !s2)
+		return (-1);
+	while ((s1[i] || s2[i]))
+	{
+		if (s1[i] != s2[i])
+			return (s1[i] - s2[i]);
+		i++;
+	}
+	return (0);
+}
+
+int	ft_usleep(long time)
+{
+	long	start;
+
+	start = current_time(NULL, 0);
+	while ((current_time(NULL, 0) - start) < time)
+		usleep(time / 10);
+	return (0);
+}

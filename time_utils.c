@@ -13,31 +13,33 @@
 #include "philo.h"
 #include <pthread.h>
 
-void	*set_time(t_philo *philo, long *time)
+void	*set_time_current(t_philo *philo, long *time)
 {
-	if (!philo || !philo->timeval)
+	struct timeval	timeval;
+	if (gettimeofday(&timeval, NULL) == -1)
 		return (NULL);
-	gettimeofday(philo->timeval, NULL);
-	*time = (philo->timeval->tv_sec * 1000) + (philo->timeval->tv_usec / 1000);
+	*time = (timeval.tv_sec * 1000) + (timeval.tv_usec / 1000);
 	return (philo);
+}
+
+long	current_time(t_philo *philo, long time)
+{
+	struct timeval	timeval;
+
+	(void)philo;
+	gettimeofday(&timeval, NULL);
+	time = (timeval.tv_sec * 1000) + (timeval.tv_usec / 1000);
+	return (time);
 }
 
 long	get_time(t_philo *philo, long time)
 {
-	set_time(philo, &philo->current_time);
-	return ((philo->current_time - time));
-}
+	long	get_timing;
 
-int	is_time_out(t_philo *philo, long limit_time)
-{
-	if (!philo || !philo->timeval || !philo->current_time || !philo->start_time)
-		return (-1);
-	if ((get_time(philo, philo->start_time)) >= limit_time)
-	{
-		philo->is_dead = 1;
-		return (1);
-	}
-	return (0);
+	get_timing = 0;
+	get_timing = current_time(philo, get_timing);
+	get_timing -= time;
+	return (get_timing);
 }
 
 int	convert_time(char *argv)
@@ -56,6 +58,14 @@ int	*convert_all(char **argv, int *converted)
 	converted[0] = convert_time(argv[2]);
 	converted[1] = convert_time(argv[3]);
 	converted[2] = convert_time(argv[4]);
+	if (argv[5])
+	{
+		converted[3] = convert_time(argv[5]);
+		if (converted[3] <= 0)
+			return (NULL);
+	}
+	else
+		converted[3] = 0;
 	while (i < 3)
 	{
 		if (converted[i] <= 0)
