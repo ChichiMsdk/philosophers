@@ -39,19 +39,8 @@ int	check_meals(t_philo *philo, int meals)
 
 void	*overwatch_action(t_philo *philo)
 {
-	int meals;
+	int	meals;
 
-	while (1)
-	{
-//		usleep(1000);
-		pthread_mutex_lock(&philo->rules->write);
-		if (philo->start_time != 0)
-		{
-			pthread_mutex_unlock(&philo->rules->write);
-			break ;
-		}
-		pthread_mutex_unlock(&philo->rules->write);
-	}
 	meals = philo->rules->number_meals;
 	while (1)
 	{
@@ -91,8 +80,8 @@ int	alert(t_philo *philo, char *alert)
 		pthread_mutex_unlock(&philo->rules->write);
 		return (1);
 	}
-	printf("%ldms| %d %s\n", get_time(philo, philo->rules->begin_simu), philo->id,
-		alert);
+	printf("%ldms| %d %s\n", get_time(philo, philo->rules->begin_simu),
+		philo->id, alert);
 	pthread_mutex_unlock(&philo->rules->write);
 	return (0);
 }
@@ -106,37 +95,4 @@ void	alert_ow(t_philo *philo, char *alert)
 		philo->rules->stop = 1;
 	}
 	return ;
-}
-
-void	*overwatch(void *arg)
-{
-	t_philo	*philo;
-
-	philo = (t_philo *)arg;
-	while(1)
-	{
-//		usleep(10000);
-		pthread_mutex_lock(&philo->rules->write);
-		if (*philo->flag == 1)
-		{
-			pthread_mutex_unlock(&philo->rules->write);
-			break ;
-		}
-		pthread_mutex_unlock(&philo->rules->write);
-	}
-	overwatch_action(philo);
-	return (NULL);
-}
-
-void	cleaner(t_philo **philo, t_rules *rules)
-{
-	int	i;
-
-	i = 0;
-	while (i < rules->number_of_phil)
-	{
-		pthread_mutex_destroy(philo[i]->left_mutex);
-		i++;
-	}
-	free_all(rules, philo);
 }

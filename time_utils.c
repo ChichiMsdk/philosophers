@@ -16,6 +16,7 @@
 void	*set_time_current(t_philo *philo, long *time)
 {
 	struct timeval	timeval;
+
 	if (gettimeofday(&timeval, NULL) == -1)
 		return (NULL);
 	*time = (timeval.tv_sec * 1000) + (timeval.tv_usec / 1000);

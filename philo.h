@@ -82,8 +82,8 @@ int						*convert_all(char **argv, int *converted);
 int						is_time_out(t_philo *philo, long limit_time);
 long					set_time(t_philo *philo, long time);
 
+void					*launch_ow(void *arg);
 void					*overwatch_action(t_philo *philo);
-void					*overwatch(void *arg);
 int						alert(t_philo *philo, char *alert);
 void					*launch_th(void *arg);
 void					cleaner(t_philo **philo, t_rules *rules);

@@ -101,24 +101,3 @@ void	*action_philo(t_philo *philo)
 	}
 	return (NULL);
 }
-
-void	*launch_th(void *arg)
-{
-	t_philo	*philo;
-
-	philo = (t_philo *)arg;
-	pthread_create(&philo->ow_th, NULL, overwatch, philo);
-	while (1)
-	{
-		// usleep(10000);
-		pthread_mutex_lock(&philo->rules->write);
-		if (*philo->flag == 1)
-		{
-			pthread_mutex_unlock(&philo->rules->write);
-			break ;
-		}
-		pthread_mutex_unlock(&philo->rules->write);
-	}
-	action_philo(philo);
-	return (NULL);
-}

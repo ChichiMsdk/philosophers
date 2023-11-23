@@ -16,8 +16,8 @@
 
 int	main(int argc, char **argv)
 {
-	t_rules		*rules;
-	t_philo		**philo;
+	t_rules	*rules;
+	t_philo	**philo;
 
 	rules = NULL;
 	philo = NULL;

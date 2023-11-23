@@ -80,12 +80,15 @@ int	ft_strcmp(const char *s1, const char *s2)
 	return (0);
 }
 
-int	ft_usleep(long time)
+void	cleaner(t_philo **philo, t_rules *rules)
 {
-	long	start;
+	int	i;
 
-	start = current_time(NULL, 0);
-	while ((current_time(NULL, 0) - start) < time)
-		usleep(time / 10);
-	return (0);
+	i = 0;
+	while (i < rules->number_of_phil)
+	{
+		pthread_mutex_destroy(philo[i]->left_mutex);
+		i++;
+	}
+	free_all(rules, philo);
 }
